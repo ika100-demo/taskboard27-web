@@ -1,7 +1,7 @@
 ---
 spec_id: 001-task-list-and-create-form-on-the-start
 title: Task list and create form on the start page
-status: building
+status: done
 priority: P1
 shape: web-nextjs
 parent: ika100-demo/taskboard27-gitops:001-persistent-tasks-and-web-task-list
@@ -160,3 +160,4 @@ docs/env-vars.md). No NEXT_PUBLIC_ variable for the API URL.
 - 2026-11-22 created from the system plan, with its criteria (spec 147)
 - 2026-11-22 approved
 - 2026-11-22 building
+- 2026-11-22 done
