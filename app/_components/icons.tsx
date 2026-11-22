@@ -71,6 +71,13 @@ export const RocketIcon = () => (
   </Icon>
 );
 
+export const WarningIcon = () => (
+  <Icon>
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+    <path d="M12 9v4M12 17h.01" />
+  </Icon>
+);
+
 export const SparklesIcon = () => (
   <Icon>
     <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
