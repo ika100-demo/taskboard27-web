@@ -12,7 +12,7 @@ const t2: Task = { id: "id-2", title: "Call mum", due_date: null };
 
 async function setup(initial: ListResult, result: CreateResult | (() => Promise<CreateResult>)) {
   const { TaskBoard } = await import("@/app/_components/task-board");
-  const createAction = vi.fn(async (input: CreateTaskInput): Promise<CreateResult> => (input && typeof result === "function" ? result() : result));
+  const createAction = vi.fn(async (input: CreateTaskInput): Promise<CreateResult> => (input && typeof result === "function" ? result() : (result as CreateResult)));
   render(<TaskBoard initial={initial} createAction={createAction} />);
   return { createAction };
 }
