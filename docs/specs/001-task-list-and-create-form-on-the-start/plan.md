@@ -17,12 +17,14 @@ tasks:
     covers: [AC-001.1, AC-001.2, AC-001.4, AC-001.5, AC-001.6]
     parallel_safe: true
     depends_on: [t1]
+    done: true
   - id: t3
     title: TaskBoard, TaskForm and TaskList client components and contract adapter
     files: [app/_components/task-board.tsx, app/_components/task-form.tsx, app/_components/task-list.tsx, app/_components/icons.tsx, app/globals.css, tests/contract/adapter.ts]
     covers: [AC-001.1, AC-001.2, AC-001.3, AC-001.4, AC-001.5, AC-001.6]
     parallel_safe: true
     depends_on: [t1]
+    done: true
   - id: t4
     title: Dynamic start page wiring list and form, template content removed
     files: [app/page.tsx, app/_components/feature-card.tsx, app/_components/icons.tsx, tests/page.test.tsx, e2e/home.spec.ts, e2e/smoke.spec.ts]
