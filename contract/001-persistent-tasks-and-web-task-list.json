@@ -1,0 +1,59 @@
+{
+  "commit": "805e05aeb59266ca198833382483185ef9ebda48",
+  "errors": {
+    "body": {
+      "field": "loc",
+      "list": "detail",
+      "message": "msg",
+      "rule": "type"
+    },
+    "status": 422,
+    "unlisted": {
+      "message": "The task could not be saved. Try again."
+    }
+  },
+  "gitops_app": "ika100-demo/taskboard27-gitops",
+  "plan_id": "001-persistent-tasks-and-web-task-list",
+  "repo": "taskboard27-web",
+  "rules": [
+    {
+      "consumers": [
+        "taskboard27-web"
+      ],
+      "endpoint": "POST /tasks",
+      "field": "title",
+      "id": "title-max",
+      "kind": "max_length",
+      "provider": "taskboard27-api",
+      "role": "consumer",
+      "status": 422,
+      "value": 200
+    },
+    {
+      "consumers": [
+        "taskboard27-web"
+      ],
+      "endpoint": "POST /tasks",
+      "field": "title",
+      "id": "title-min",
+      "kind": "min_length",
+      "provider": "taskboard27-api",
+      "role": "consumer",
+      "status": 422,
+      "value": 1
+    },
+    {
+      "consumers": [
+        "taskboard27-web"
+      ],
+      "endpoint": "POST /tasks",
+      "field": "title",
+      "id": "title-required",
+      "kind": "required",
+      "provider": "taskboard27-api",
+      "role": "consumer",
+      "status": 422,
+      "value": true
+    }
+  ]
+}
