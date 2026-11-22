@@ -9,3 +9,10 @@ test("the root page loads at the base URL @smoke", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
+
+test("AC-001.1 the task list loads from the Task API @smoke", async ({ page }) => {
+  await page.goto("/");
+  const list = page.getByRole("main").getByRole("region", { name: "Your tasks" });
+  await expect(list).toBeVisible();
+  await expect(list).not.toContainText("Tasks could not be loaded. Try again later.");
+});

@@ -1,43 +1,72 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import HomePage from "@/app/page";
+const tasks = [
+  { id: "id-1", title: "Water plants", due_date: "2026-12-01" },
+  { id: "id-2", title: "Call mum", due_date: null },
+];
+
+let fetchMock: ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  fetchMock = vi.fn();
+  vi.stubGlobal("fetch", fetchMock);
+  vi.stubEnv("TASKBOARD27_API_URL", "http://taskboard27-api");
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
+
+async function renderPage() {
+  const { default: HomePage } = await import("@/app/page");
+  render(await HomePage());
+  return within(screen.getByRole("main"));
+}
 
 describe("HomePage", () => {
-  it("owns the main landmark the skip link targets", () => {
-    render(<HomePage />);
+  it("AC-001.1 owns the main landmark and lists the API's tasks in order below the form", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(tasks), { status: 200 }));
+    const main = await renderPage();
     expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
+    expect(main.getByRole("heading", { level: 1, name: "Tasks" })).toBeInTheDocument();
+    expect(main.getByRole("button", { name: "Add task" })).toBeInTheDocument();
+    const items = within(main.getByRole("region", { name: "Your tasks" })).getAllByRole("listitem");
+    expect(items.map((li) => li.textContent)).toEqual([
+      expect.stringContaining("Water plants"),
+      expect.stringContaining("Call mum"),
+    ]);
+    expect(items[0]).toHaveTextContent("2026-12-01");
+    expect(items[1]).toHaveTextContent("No due date");
   });
 
-  it("renders the project heading", () => {
-    render(<HomePage />);
-    expect(screen.getByRole("heading", { level: 1, name: "taskboard27-web" })).toBeInTheDocument();
+  it("AC-001.1 shows No tasks yet for an empty list", async () => {
+    fetchMock.mockResolvedValue(new Response("[]", { status: 200 }));
+    const main = await renderPage();
+    expect(within(main.getByRole("region", { name: "Your tasks" })).getByText("No tasks yet")).toBeInTheDocument();
   });
 
-  it("offers the two primary actions", () => {
-    render(<HomePage />);
-    expect(screen.getByRole("link", { name: "Get started" })).toHaveAttribute("href", "#get-started");
-    expect(screen.getByRole("link", { name: "Check health" })).toHaveAttribute("href", "/api/health");
+  it("AC-001.1 fetches the list on every page request", async () => {
+    fetchMock.mockImplementation(async () => new Response("[]", { status: 200 }));
+    const { default: HomePage, dynamic } = await import("@/app/page");
+    expect(dynamic).toBe("force-dynamic");
+    await HomePage();
+    await HomePage();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("lists what is included as accessible cards", () => {
-    render(<HomePage />);
-    const features = screen.getByRole("region", { name: "What's included" });
-    const items = within(features).getAllByRole("listitem");
-    expect(items.length).toBeGreaterThanOrEqual(5);
-    expect(within(features).getByRole("heading", { level: 3, name: "Health and readiness" })).toBeInTheDocument();
-    expect(within(features).getByRole("heading", { level: 3, name: "Metrics and tracing" })).toBeInTheDocument();
+  it("AC-001.5 shows the load error in the list area and still shows the form when the API fails", async () => {
+    fetchMock.mockResolvedValue(new Response("{}", { status: 503 }));
+    const main = await renderPage();
+    expect(within(main.getByRole("region", { name: "Your tasks" })).getByText("Tasks could not be loaded. Try again later.")).toBeInTheDocument();
+    expect(main.getByRole("textbox", { name: "Title" })).toBeInTheDocument();
+    expect(main.getByRole("button", { name: "Add task" })).toBeInTheDocument();
   });
 
-  it("explains how to get started in order", () => {
-    render(<HomePage />);
-    const steps = within(screen.getByRole("region", { name: "Get started" })).getAllByRole("listitem");
-    expect(steps).toHaveLength(3);
-  });
-
-  it("keeps a single level-1 heading and ordered sections", () => {
-    render(<HomePage />);
-    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["What's included", "Get started"]);
+  it("AC-001.5 shows the load error when the API is unreachable", async () => {
+    fetchMock.mockRejectedValue(new TypeError("fetch failed"));
+    const main = await renderPage();
+    expect(within(main.getByRole("region", { name: "Your tasks" })).getByText("Tasks could not be loaded. Try again later.")).toBeInTheDocument();
   });
 });
