@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-// No Task API is wired in the local e2e server, so the list area shows its load message here.
-test("AC-001.5 home page renders its landmarks, the create form and the list area", async ({ page }) => {
+// The list area's content depends on the Task API, which the local e2e server does not control: only its presence is checked.
+test("AC-001.5 home page renders its landmarks, the create form and the list area (content not asserted)", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("banner")).toBeVisible();
   const main = page.getByRole("main");

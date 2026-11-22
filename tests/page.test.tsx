@@ -37,6 +37,8 @@ describe("HomePage", () => {
       expect.stringContaining("Water plants"),
       expect.stringContaining("Call mum"),
     ]);
+    const form = main.getByRole("region", { name: "Add a task" });
+    expect(form.compareDocumentPosition(main.getByRole("region", { name: "Your tasks" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(items[0]).toHaveTextContent("2026-12-01");
     expect(items[1]).toHaveTextContent("No due date");
   });

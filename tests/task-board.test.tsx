@@ -62,6 +62,8 @@ describe("TaskBoard", () => {
     await setup({ ok: true, tasks: [t1, t2] }, { kind: "created", task: t1 });
     expect(screen.getByRole("region", { name: "Add a task" })).toBeInTheDocument();
     expect(within(listArea()).getAllByRole("listitem")).toHaveLength(2);
+    const form = screen.getByRole("region", { name: "Add a task" });
+    expect(form.compareDocumentPosition(listArea()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("AC-001.5 shows the load error in the list area and still shows the form", async () => {
@@ -115,11 +117,16 @@ describe("TaskBoard", () => {
   it("AC-001.4 shows the msg of a 422 title item at the title field and keeps the values", async () => {
     await setup(
       { ok: true, tasks: [t1] },
-      { kind: "field-error", field: "title", message: "Enter a title of 1 to 200 characters" },
+      { kind: "field-error", field: "title", message: "Title already taken" },
     );
     fill("Buy milk", "2026-12-24");
     submit();
-    await waitFor(() => expect(screen.getByText(TITLE_MESSAGE)).toBeInTheDocument());
+    const message = await screen.findByText("Title already taken");
+    const input = screen.getByRole("textbox", { name: "Title" });
+    expect(message.closest("#task-title-error")).not.toBeNull();
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input).toHaveAttribute("aria-describedby", "task-title-error");
+    expect(screen.queryByText(TITLE_MESSAGE)).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue("Buy milk");
     expect(screen.getByLabelText("Due date (optional)")).toHaveValue("2026-12-24");
     expect(within(listArea()).getAllByRole("listitem")).toHaveLength(1);

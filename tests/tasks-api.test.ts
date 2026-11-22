@@ -15,7 +15,40 @@ beforeEach(() => {
   vi.stubEnv("TASKBOARD27_API_URL", "http://taskboard27-api");
 });
 
+// Runs `start` against a fetch that never answers. Node's AbortSignal.timeout ignores fake timers, so it is routed
+// through the faked setTimeout; this holds for AbortSignal.timeout(5000) and for AbortController + setTimeout alike.
+async function withFakeTimeout<T>(start: () => Promise<T>) {
+  vi.useFakeTimers();
+  vi.spyOn(AbortSignal, "timeout").mockImplementation((ms) => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), ms);
+    return controller.signal;
+  });
+  let captured: AbortSignal | undefined;
+  fetchMock.mockImplementation(
+    (_url: string, init: RequestInit) =>
+      new Promise((_resolve, reject) => {
+        const s = init.signal as AbortSignal;
+        captured = s;
+        s.addEventListener("abort", () => reject(s.reason));
+      }),
+  );
+  const pending = start();
+  let elapsed = 0;
+  return {
+    signal: () => captured,
+    // Advances the clock; returns the call's result once 5000 ms have passed, else undefined.
+    settle: async (ms: number) => {
+      await vi.advanceTimersByTimeAsync(ms);
+      elapsed += ms;
+      return elapsed >= 5000 ? await pending : undefined;
+    },
+  };
+}
+
 afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
@@ -60,9 +93,13 @@ describe("listTasks", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("AC-001.5 gives up after 5 seconds", async () => {
-    const { API_TIMEOUT_MS } = await import("@/lib/tasks/api");
-    expect(API_TIMEOUT_MS).toBe(5000);
+  it("AC-001.5 aborts the call at 5000 ms and not before, and then reports ok:false", async () => {
+    const { listTasks } = await import("@/lib/tasks/api");
+    const { signal, settle } = await withFakeTimeout(() => listTasks());
+    await settle(4999);
+    expect(signal()?.aborted).toBe(false);
+    expect(await settle(1)).toEqual({ ok: false });
+    expect(signal()?.aborted).toBe(true);
   });
 });
 
@@ -112,6 +149,17 @@ describe("postTask", () => {
     fetchMock.mockRejectedValueOnce(new DOMException("timed out", "TimeoutError"));
     expect(await postTask({ title: "x", due_date: null })).toEqual(SAVE);
     expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe("postTask timeout", () => {
+  it("AC-001.6 aborts the create call at 5000 ms and not before, and then reports the save error", async () => {
+    const { postTask } = await import("@/lib/tasks/api");
+    const { signal, settle } = await withFakeTimeout(() => postTask({ title: "x", due_date: null }));
+    await settle(4999);
+    expect(signal()?.aborted).toBe(false);
+    expect(await settle(1)).toEqual(SAVE);
+    expect(signal()?.aborted).toBe(true);
   });
 });
 
