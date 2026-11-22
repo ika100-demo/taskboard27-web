@@ -10,6 +10,7 @@ tasks:
     covers: [AC-001.1, AC-001.3, AC-001.4, AC-001.5, AC-001.6]
     parallel_safe: true
     depends_on: []
+    done: true
   - id: t2
     title: Server-side Task API client and createTask Server Action
     files: [lib/tasks/api.ts, app/actions.ts, docs/env-vars.md]
