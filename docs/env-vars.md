@@ -9,6 +9,12 @@ Configuration is read exclusively from environment variables. Defaults below are
 | `PORT` | `3000` | HTTP port the server listens on. |
 | `NODE_ENV` | `production` (in the image) | Node environment. |
 
+## Task API
+
+| Variable | Default | Description |
+|---|---|---|
+| `TASKBOARD27_API_URL` | _(unset)_ | Base URL of the Task API; the gitops entry sets it to `http://taskboard27-api`. Server-side only, never `NEXT_PUBLIC_`. When unset, the list and saves show their error messages. |
+
 ## Observability
 
 | Variable | Default | Description |
